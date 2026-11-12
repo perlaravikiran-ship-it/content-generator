@@ -98,9 +98,9 @@ export const ERROR_CODES: ErrorCodeInfo[] = [
 export const SCENARIO_STEPS = [
   { step: 1, module: 'Custom Webhook', action: 'Receives POST with { topic, platform?, format? }' },
   { step: 2, module: 'If-Else', action: 'Checks if topic field exists in payload — if not, returns TOPIC_NOT_PROVIDED' },
-  { step: 3, module: 'OpenAI GPT-5-mini (max_tokens: 40)', action: 'Quick validation call — checks for error codes (UNKNOWN_LANGUAGE, KIDS_ACCEPTABLE, MIN_CHARACTER_LIMIT)' },
+  { step: 3, module: 'OpenAI GPT-5-mini (max_tokens: 4000)', action: 'First content generation call — checks for error codes (UNKNOWN_LANGUAGE, KIDS_ACCEPTABLE, MIN_CHARACTER_LIMIT) and generates full content' },
   { step: 4, module: 'If-Else (4 branches)', action: 'Branches based on content result: valid content → proceed to image gen; error code → return error; empty → trigger retry' },
-  { step: 5, module: 'Sleep 5s + Retry GPT-5-mini (max_tokens: 4000)', action: 'If first call fails or returns empty: sleep 5 seconds, then retry with full token limit for complete content generation' },
+  { step: 5, module: 'Sleep 5s + Retry GPT-5-mini (max_tokens: 4000)', action: 'If first call fails or returns empty: sleep 5 seconds, then retry with the same full token limit' },
   { step: 6, module: 'If-Else (4 branches)', action: 'Checks retry result for same error codes — valid → proceed to image gen; error code → return error; empty → CONTENT_NOT_GENERATED' },
   { step: 7, module: 'OpenAI GPT Image 2', action: 'Generates a photorealistic image based on topic + platform + format' },
   { step: 8, module: 'If image data exists', action: 'If no image data → Sleep 5s → Retry image generation → If still fails → IMAGE_NOT_GENERATED' },
@@ -116,7 +116,7 @@ export const SCENARIO_STEPS = [
 export const RETRY_BEHAVIOR = {
   sleepDuration: '5 seconds',
   steps: [
-    { step: 'Content Generation', firstAttempt: 'max_tokens: 40 (quick validation)', retry: 'Sleep 5s → max_tokens: 4000 (full content)' },
+    { step: 'Content Generation', firstAttempt: 'max_tokens: 4000', retry: 'Sleep 5s → max_tokens: 4000' },
     { step: 'Image Generation', firstAttempt: 'GPT Image 2', retry: 'Sleep 5s → Retry GPT Image 2' },
     { step: 'Drive Upload', firstAttempt: 'Upload to "Content Generation Tekion" folder', retry: 'Sleep 5s → Retry upload' },
     { step: 'Drive Sharing', firstAttempt: 'Share with "Anyone with link"', retry: 'Sleep 5s → Retry sharing' },

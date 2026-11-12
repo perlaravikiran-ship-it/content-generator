@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import JsonBlock from './JsonBlock';
 import {
-  ERROR_CODES, SCENARIO_STEPS, CONTENT_FORMATS,
+  ERROR_CODES, CONTENT_FORMATS,
   PLATFORM_OPTIONS, MAKECOM_WEBHOOK_URL, RETRY_BEHAVIOR,
 } from '@/lib/utils/constants';
-import { Terminal, BookOpen, AlertTriangle, Sparkles, Copy, Check } from 'lucide-react';
+import { BookOpen, AlertTriangle, Sparkles, Copy, Check } from 'lucide-react';
 import clsx from 'clsx';
 
-type Tab = 'overview' | 'errors' | 'flow' | 'try';
+type Tab = 'overview' | 'errors' | 'try';
 
 interface Props {
   onSwitchToForm: () => void;
@@ -74,7 +74,6 @@ export default function WebhookMode({ onSwitchToForm }: Props) {
         {([
           { id: 'overview', label: 'Overview', icon: <BookOpen size={13} /> },
           { id: 'errors', label: 'Error Codes', icon: <AlertTriangle size={13} /> },
-          { id: 'flow', label: 'Scenario Flow', icon: <Terminal size={13} /> },
           { id: 'try', label: 'Try It', icon: <Sparkles size={13} /> },
         ] as { id: Tab; label: string; icon: React.ReactNode }[]).map((t) => (
           <button
@@ -96,11 +95,6 @@ export default function WebhookMode({ onSwitchToForm }: Props) {
       {tab === 'overview' && (
         <div className="space-y-5" role="tabpanel">
           <Section title="Request Payload">
-            <JsonBlock value={{
-              topic: { type: 'string', required: true, minLength: 5, description: 'The content topic. Must be in English.' },
-              platform: { type: 'string', required: false, options: ['linkedin', 'twitter', 'facebook', 'instagram', ''], description: 'Target platform. Empty = General Article Blog.' },
-              format: { type: 'string', required: false, options: [...CONTENT_FORMATS], description: 'Content format. Empty = auto-select.' },
-            }} label="schema" />
             <JsonBlock value={SAMPLE_REQUEST} label="example-request.json" />
           </Section>
 
@@ -217,43 +211,6 @@ export default function WebhookMode({ onSwitchToForm }: Props) {
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Scenario Flow ── */}
-      {tab === 'flow' && (
-        <div className="space-y-4" role="tabpanel">
-          <p className="text-sm text-gray-500">
-            The Make.com scenario processes the webhook across {SCENARIO_STEPS.length} steps, each with error handling and retry logic.
-          </p>
-
-          <div className="space-y-3">
-            {SCENARIO_STEPS.map((s) => (
-              <div key={s.step} className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
-                    {s.step}
-                  </div>
-                  {s.step < SCENARIO_STEPS.length && <div className="mt-1 h-full w-0.5 flex-1 bg-gray-200" />}
-                </div>
-                <div className="flex-1 pb-4">
-                  <p className="font-semibold text-sm text-gray-800">{s.module}</p>
-                  <p className="text-sm text-gray-500">{s.action}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <h4 className="mb-2 text-sm font-semibold text-gray-700">Key Decision Points</h4>
-            <ul className="space-y-1.5 text-sm text-gray-600">
-              <li><strong>Step 2:</strong> Missing topic → <code className="font-mono text-red-600">TOPIC_NOT_PROVIDED</code></li>
-              <li><strong>Steps 3-4:</strong> Quick validation (max_tokens: 40) catches <code className="font-mono text-red-600">UNKNOWN_LANGUAGE</code>, <code className="font-mono text-red-600">KIDS_ACCEPTABLE_CONTENT_ONLY_ALLOWED</code>, <code className="font-mono text-red-600">MIN_CHARACTER_LIMIT</code></li>
-              <li><strong>Step 5:</strong> Empty/failed → sleep 5s → retry with max_tokens: 4000 for full content</li>
-              <li><strong>Steps 7-12:</strong> Image gen, Drive upload, Drive sharing — each has sleep+retry on failure</li>
-              <li><strong>Step 13:</strong> webContentLink exists → 200 with content + imageUrl</li>
-            </ul>
           </div>
         </div>
       )}
